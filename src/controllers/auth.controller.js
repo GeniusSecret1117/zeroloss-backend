@@ -152,7 +152,7 @@ const register = async (req, res) => {
         if (saved) {
             const savedUser = await User.findByEmail(email);
             const userId = savedUser.id;
-
+                     
             // creating new profile_row
             const profile = new Profile({
                 userId: userId,
@@ -246,6 +246,46 @@ const requestOTP = async (req, res) => {
         });
     }
 };
+const changePd = async (req, res) => {
+    
+    const { old_password, password, confirm_password } = req.body;
+    
+    // Validate request body
+    if (!password || password.trim() === "" || password !== confirm_password) {
+        return res.status(400).json({ message: 'Password validation failed' });
+    }
+
+    try {
+        // Find the user by ID (assuming req.userId is set by middleware)
+        const user = await User.findById(req.userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        
+        
+        // Verify old password
+        const isMatch = await bcrypt.compare(old_password, user.password);
+        if (!isMatch) {
+            return res.status(401).json({ message: 'Invalid current password' });
+        }
+      
+        // Update the user's password
+     
+        const updatedUser = await User.findByIdAndUpdate(user.id, {password:password});
+
+        if (!updatedUser) {
+            return res.status(500).json({ message: 'Failed to update user password' });
+        }
+
+        // Respond with success
+        return res.status(200).json({ message: 'Password updated successfully', user: updatedUser });
+    } catch (error) {
+        console.error('Error updating password:', error);
+        return res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
+
 
 module.exports = {
     getUsers,
@@ -254,4 +294,5 @@ module.exports = {
     verifyOTP,
     requestOTP,
     verifyToken,
+    changePd
 };

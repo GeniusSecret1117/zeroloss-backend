@@ -218,32 +218,63 @@ class User {
         }
     }
 
-    // Update user by ID (with hashed password)
     static async findByIdAndUpdate(id, options) {
         try {
             const now = new Date();
-            let hashedPassword = options.password;
+    
+            // Initialize an empty array for fields and values to update
+            let fieldsToUpdate = [];
+            let valuesToUpdate = [];
+    
+            // Only include email if it's provided and not an empty string
+            if (options.email && options.email.trim() !== '') {
+                fieldsToUpdate.push('email = ?');
+                valuesToUpdate.push(options.email);
+            }
+    
+            // Only include password if it's provided (and hash it)
+            let hashedPassword = undefined;
             if (options.password) {
                 const salt = await bcrypt.genSalt(10);
-                hashedPassword = await bcrypt.hash(options.password, salt); // Hash password during update if provided
+                hashedPassword = await bcrypt.hash(options.password, salt);
+                fieldsToUpdate.push('password = ?');
+                valuesToUpdate.push(hashedPassword);
             }
-            const sql = `UPDATE users 
-                         SET full_name = ?, email = ?, password = ?, status = ?, email_verified = ?, updated_at = ? 
-                         WHERE id = ?`;
-            await pool.execute(sql, [
-                options.fullName,
-                options.email,
-                hashedPassword,
-                options.status,
-                options.emailVerified,
-                now,
-                id,
-            ]);
+    
+            // Only include status if it's provided
+            if (options.status) {
+                fieldsToUpdate.push('status = ?');
+                valuesToUpdate.push(options.status);
+            }
+    
+            // Only include email_verified if it's provided
+            if (options.emailVerified !== undefined) {
+                fieldsToUpdate.push('email_verified = ?');
+                valuesToUpdate.push(options.emailVerified);
+            }
+    
+            // Include updated_at field
+            fieldsToUpdate.push('updated_at = ?');
+            valuesToUpdate.push(now);
+    
+            // Construct the final SQL query
+            const sql = `UPDATE users SET ${fieldsToUpdate.join(', ')} WHERE id = ?`;
+    
+            // Log the final SQL for debugging purposes
+            console.log('SQL:', sql);
+            console.log('Values:', valuesToUpdate);
+    
+            // Execute the SQL query with the valuesToUpdate array
+            await pool.execute(sql, [...valuesToUpdate, id]);
+    
+            console.log('User updated successfully');
         } catch (error) {
             console.error(`Error updating user with id ${id}:`, error.message);
             throw new Error('Could not update user.');
         }
     }
+    
+    
 
     // Delete user by ID
     static async findByIdAndDelete(id) {

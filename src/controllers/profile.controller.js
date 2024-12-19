@@ -181,6 +181,8 @@ const updateProfile = async (req, res) => {
         console.log('hitting update profile');
         const userId = req.userId;
         const updates = req.body;
+        console.log("///////////////",updates);
+        
         const updatedProfile = await Profile.findByIdAndUpdate(userId, updates);
 
         console.log('updated profile', updatedProfile);
