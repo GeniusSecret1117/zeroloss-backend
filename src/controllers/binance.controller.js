@@ -118,7 +118,8 @@ const fetchBalance = async (req, res) => {
 
         //fetchBalance
         const balance = await BinanceApi.fetchAccountBalance(binKeys.api_key, binKeys.secret_key, timestamp);
-
+           
+            
         //fetchIncome
         const income = await BinanceApi.fetchIncome(binKeys.api_key, binKeys.secret_key, timestamp);
 

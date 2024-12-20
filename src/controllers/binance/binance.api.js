@@ -20,6 +20,7 @@ const getBinanceServerTime = async () => {
 
 //Balance
 const fetchAccountBalance = async (apiKey, secretKey, timestamp) => {
+    
     try {
         const queryString = `timestamp=${timestamp}`;
         const signature = createSignature(queryString, secretKey);
@@ -32,7 +33,7 @@ const fetchAccountBalance = async (apiKey, secretKey, timestamp) => {
                 signature,
             },
         });
-
+        
         const accountInfo = response.data;
         // Filter the USDT balance, unrealized PNL, and margin balance
         const usdtAsset = accountInfo.assets.find((asset) => asset.asset === 'USDT');
@@ -60,6 +61,7 @@ const fetchAccountBalance = async (apiKey, secretKey, timestamp) => {
 
 //Income
 const fetchIncome = async (apiKey, secretKey, timestamp) => {
+    
     try {
         const queryString = `timestamp=${timestamp}`;
         // const queryString = `timestamp=${timestamp}&startTime=${startTime}&endTime=${endTime}&incomeType=${incomeType}`;
@@ -75,8 +77,10 @@ const fetchIncome = async (apiKey, secretKey, timestamp) => {
                 signature,
             },
         });
+    
+   
         const incomeInfo = response.data;
-
+      
         let data = null;
         if (incomeInfo != null && incomeInfo != undefined) {
             data = incomeInfo;
