@@ -442,7 +442,7 @@ const placeOrder = async (timestamp, apiKey, secretKey, symbol, quantity, side, 
             timestamp: timestamp,
         };
         const queryString = `symbol=${leverageParams.symbol}&leverage=${leverageParams.leverage}&timestamp=${leverageParams.timestamp}`;
-
+        
         leverageParams.signature = createSignature(queryString, secretKey);
         console.log('url', `${binanceFuturesAPI}${binEndpoints.leverageOrders}`);
         const leverageResponse = await axios.post(
@@ -464,7 +464,7 @@ const placeOrder = async (timestamp, apiKey, secretKey, symbol, quantity, side, 
             timestamp: timestamp,
         };
         orderParams.signature = createSignature(orderParams, secretKey);
-
+      
         const orderResponse = await axios.post(`${binanceFuturesAPI}${binEndpoints.buyOrders}`, null, {
             headers: { 'X-MBX-APIKEY': apiKey },
             params: orderParams,

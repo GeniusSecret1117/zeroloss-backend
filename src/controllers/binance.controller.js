@@ -175,6 +175,7 @@ const fetchBalance = async (req, res) => {
 };
 
 const buyOrders = async (req, res) => {
+    const buyingData = req.body.data;
     try {
         const timestamp = await BinanceApi.getBinanceServerTime();
         const binKeys = await BinanceSetting.findApiKeyByUserId(req.userId);
@@ -183,13 +184,24 @@ const buyOrders = async (req, res) => {
             timestamp,
             binKeys.api_key,
             binKeys.secret_key,
-            req.body.coinName,
-            req.body.pairCurrency,
-            req.body.orderAmount,
-            req.body.leverage,
-            req.body.side,
-            req.body.takeProfitPercent
+            buyingData.coinName,
+            buyingData.pairCurrency,
+            buyingData.orderAmount,
+            buyingData.leverage,
+            buyingData.side,
+            buyingData.takeProfitPercent
         );
+        console.log('-------------:',
+            timestamp,
+            binKeys.api_key,
+            binKeys.secret_key,
+            buyingData.coinName,
+            buyingData.pairCurrency,
+            buyingData.orderAmount,
+            buyingData.leverage,
+            buyingData.side,
+            buyingData.takeProfitPercent);
+        
         return res.send({
             statusCode: 200,
             statusMessage: 'Ok',
