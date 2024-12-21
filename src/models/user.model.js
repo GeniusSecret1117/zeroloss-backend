@@ -167,9 +167,12 @@ class User {
         try {
             const sql = 'SELECT otp, otp_expiration FROM users WHERE email = ?';
             const [rows] = await pool.execute(sql, [email]);
+            
+            
             if (!rows.length) throw new Error('User not found.');
 
             const { otp, otp_expiration } = rows[0];
+            
             if (otp !== inputOtp) {
                 throw new Error('Invalid OTP.');
             }

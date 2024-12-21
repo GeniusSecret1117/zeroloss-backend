@@ -21,7 +21,6 @@ const fetchFundingFeeByPeriod = async (req, res) => {
         //get Users Api Keys
         const binKeys = await BinanceSetting.findApiKeyByUserId(req.userId);
         //get Server Time
-        const timestamp = await BinanceApi.getBinanceServerTime();
 
         const startTime = req.body.startTime;
         const endTime = req.body.endTime;
@@ -40,7 +39,6 @@ const fetchFundingFeeByPeriod = async (req, res) => {
         const fundingFee = await BinanceApi.fetchFundingFeeByPeriod(
             binKeys.api_key,
             binKeys.secret_key,
-            timestamp,
             startTime,
             endTime
         );
@@ -68,7 +66,6 @@ const fetchTransactionByPeriod = async (req, res) => {
         //get Users Api Keys
         const binKeys = await BinanceSetting.findApiKeyByUserId(req.userId);
         //get Server Time
-        const timestamp = await BinanceApi.getBinanceServerTime();
 
         const startTime = req.body.startTime;
         const endTime = req.body.endTime;
@@ -86,7 +83,6 @@ const fetchTransactionByPeriod = async (req, res) => {
         const transactionHistory = await BinanceApi.fetchTransactionByPeriod(
             binKeys.api_key,
             binKeys.secret_key,
-            timestamp,
             startTime,
             endTime
         );
@@ -114,38 +110,37 @@ const fetchBalance = async (req, res) => {
         //get Users Api Keys
         const binKeys = await BinanceSetting.findApiKeyByUserId(req.userId);
         //get Server Time
-        const timestamp = await BinanceApi.getBinanceServerTime();
+        // const timestamp = await BinanceApi.getBinanceServerTime();
 
         //fetchBalance
-        const balance = await BinanceApi.fetchAccountBalance(binKeys.api_key, binKeys.secret_key, timestamp);
+        const balance = await BinanceApi.fetchAccountBalance(binKeys.api_key, binKeys.secret_key);
            
             
         //fetchIncome
-        const income = await BinanceApi.fetchIncome(binKeys.api_key, binKeys.secret_key, timestamp);
+        const income = await BinanceApi.fetchIncome(binKeys.api_key, binKeys.secret_key);
 
         //fetchIncomeByRange
-        const incomeByRange = await BinanceApi.fetchIncomeByRange(binKeys.api_key, binKeys.secret_key, timestamp);
+        const incomeByRange = await BinanceApi.fetchIncomeByRange(binKeys.api_key, binKeys.secret_key);
 
         //fetchPositionRisk
-        const position = await BinanceApi.fetchPositionRisk(binKeys.api_key, binKeys.secret_key, timestamp);
+        const position = await BinanceApi.fetchPositionRisk(binKeys.api_key, binKeys.secret_key);
 
         //fetchOpenOrders
-        const openOrders = await BinanceApi.fetchOpenOrders(binKeys.api_key, binKeys.secret_key, timestamp);
+        const openOrders = await BinanceApi.fetchOpenOrders(binKeys.api_key, binKeys.secret_key);
 
         //fetchOrders
-        const allOrders = await BinanceApi.fetchOrders(binKeys.api_key, binKeys.secret_key, timestamp);
+        const allOrders = await BinanceApi.fetchOrders(binKeys.api_key, binKeys.secret_key);
 
         //fetchFundingFee
-        const fundingFee = await BinanceApi.fetchFundingFee(binKeys.api_key, binKeys.secret_key, timestamp);
+        const fundingFee = await BinanceApi.fetchFundingFee(binKeys.api_key, binKeys.secret_key);
 
         //fetchTradeHistory
-        const tradeHistory = await BinanceApi.fetchTradeHistory(binKeys.api_key, binKeys.secret_key, timestamp);
+        const tradeHistory = await BinanceApi.fetchTradeHistory(binKeys.api_key, binKeys.secret_key);
 
         //fetchTransactionHistory
         const transactionHistory = await BinanceApi.fetchTransactionHistory(
             binKeys.api_key,
             binKeys.secret_key,
-            timestamp
         );
 
         res.send({
@@ -177,11 +172,9 @@ const fetchBalance = async (req, res) => {
 const buyOrders = async (req, res) => {
     const buyingData = req.body.data;
     try {
-        const timestamp = await BinanceApi.getBinanceServerTime();
         const binKeys = await BinanceSetting.findApiKeyByUserId(req.userId);
 
         const response = await BinanceApi.buyOrders(
-            timestamp,
             binKeys.api_key,
             binKeys.secret_key,
             buyingData.coinName,
@@ -191,16 +184,6 @@ const buyOrders = async (req, res) => {
             buyingData.side,
             buyingData.takeProfitPercent
         );
-        console.log('-------------:',
-            timestamp,
-            binKeys.api_key,
-            binKeys.secret_key,
-            buyingData.coinName,
-            buyingData.pairCurrency,
-            buyingData.orderAmount,
-            buyingData.leverage,
-            buyingData.side,
-            buyingData.takeProfitPercent);
         
         return res.send({
             statusCode: 200,

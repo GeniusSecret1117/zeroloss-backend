@@ -89,8 +89,13 @@ const login = async (req, res) => {
     try {
         //user
         const user = await User.findByEmail(email);
+        console.log(user);
+        
         if (!user || !(await bcrypt.compare(password, user.password))) {
             return res.status(401).json({ message: 'Invalid credentials' });
+        }
+        if (user.email_verified !== 1) {
+            return res.status(401).json({ message: 'Verify Email' });
         }
 
         //jwt
@@ -211,7 +216,7 @@ const verifyOTP = async (req, res) => {
         if (!user) {
             return res.status(404).send({ statusCode: 404, statusMessage: 'User Not Found' });
         }
-
+        
         await User.verifyOTP(email, otp);
         return res.status(200).send({
             statusCode: 200,
@@ -230,13 +235,13 @@ const verifyOTP = async (req, res) => {
 };
 
 const requestOTP = async (req, res) => {
+    
     try {
-        const { email } = req.body;
-
+        const { email } = req.body;      
         const otp = User.generateOTP();
         const otpExpiration = new Date(Date.now() + 10 * 60 * 1000);
-
-        return await findByEmailAndUpdateOTP(email, otp, otpExpiration);
+        console.log(otp,otpExpiration);        
+        return await User.findByEmailAndUpdateOTP(email, otp, otpExpiration);
     } catch (err) {
         res.status(500).send({
             statusCode: 500,

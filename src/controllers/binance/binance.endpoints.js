@@ -7,7 +7,6 @@ const binEndpoints = {
     fetchTransactionHistory: '/fapi/v1/transaction',
     fetchPositionRisk: '/fapi/v2/positionRisk',
     fetchTrades: '/fapi/v1/userTrades',
-    fetchOrders: '/fapi/v1/allOrders',
     buyOrders: '/fapi/v1/order',
     leverageOrders: '/fapi/v1/leverage',
     tickerOrders: '/fapi/v1/ticker/price',
