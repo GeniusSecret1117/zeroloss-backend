@@ -9,6 +9,7 @@ const { generateJWT } = require('../middlewares/jwt_service');
 const Profile = require('../models/profile.model');
 const { getProfileByUserId } = require('./profile.controller');
 const BinanceSetting = require('../models/binance_setting');
+const { log } = require('console');
 
 const getUsers = async (req, res) => {
     try {
@@ -148,92 +149,58 @@ const login = async (req, res) => {
 
 const register = async (req, res) => {
     const crypto = require('crypto');
-    const { email, password, referredCodeBy } = req.body;
+    const { email, password,referredCodeBy } = req.body;
+        
     if (!email || !email.trim() || !password || !password.trim())
         return res.status(400).send({ statusCode: 400, statusMessage: 'Bad Request', message: null, data: null });
     try {
-        // Check if the email already exists and is unverified
-        const existingUser = await User.findByEmail(email);
-        const userInstance = new User({ email, password });
-        if (existingUser) {
-            if (existingUser.email_verified === 0) {
-                // Update the existing user's data instead of deleting them
-                const newOTP = User.generateOTP();
-                const otpExpiration = new Date(Date.now() + 10 * 60 * 1000); // OTP valid for 10 minutes
 
-                // Update user with new OTP and reset emailVerified
-                await User.findByIdAndUpdate(existingUser.id, {
-                    password: password.trim(),
-                    email: email,
-                    otp: newOTP,
-                    otpExpiration: otpExpiration,
-                });
-                // Send the verification email with the new OTP
-                await userInstance.sendEmail(email, newOTP);
-                return res.status(200).send({
-                    statusCode: 200,
-                    statusMessage: 'OK',
-                    message: 'Verification email has been resent. Please verify your email.',
+        const referral_code = crypto.randomBytes(4).toString('hex'); 
+        const user = new User({ email, password,referral_code,referredCodeBy});       
+        
+        const saved = await user.save();
+        console.log(saved);
+        
+        if (saved) {
+            const savedUser = await User.findByEmail(email);
+            const userId = savedUser.id;
+                     
+            // creating new profile_row
+            const profile = new Profile({
+                userId: userId,
+            });
+            await profile.save();
+
+            console.log('in register user ID', userId);
+            // creating new api_keys_row
+            const binance = new BinanceSetting({
+                user_id: userId,
+            });
+            console.log('binance instance', binance);
+            await binance.save();
+
+            //jwt
+            const payload = { id: savedUser.id, email: savedUser.email }; // Customize as needed
+            const access_token = generateJWT(payload);
+
+            return res.status(201).send({
+                statusCode: 201,
+                statusMessage: 'Created',
+                message: 'Successfully created a user.',
+                data: {
+                    userId: savedUser?.id ?? null,
+                    // binanceId: zerolossId?.id ?? null,
                     data: {
-                        data: {
-                            email: email,
-                        },
+                        displayName: null,
+                        photoUrl: null,
+                        email: savedUser?.email ?? null,
+                        shortcuts: ['apps.dashboard', 'apps.mailbox', 'apps.settings'],
                     },
-                });
-            } else {
-                return res.status(409).send({
-                    statusCode: 409,
-                    statusMessage: 'Conflict',
-                    message: 'This email is already registered and verified.',
-                    data: null,
-                });
-            }
-        }
-        else {
-            const referral_code = crypto.randomBytes(4).toString('hex');
-            const user = new User({ email, password,referral_code,referredCodeBy}); 
-            const saved = await user.save();
-            if (saved) {
-                const savedUser = await User.findByEmail(email);
-                const userId = savedUser.id;
-                         
-                // creating new profile_row
-                const profile = new Profile({
-                    userId: userId,
-                });
-                await profile.save();
-    
-                console.log('in register user ID', userId);
-                // creating new api_keys_row
-                const binance = new BinanceSetting({
-                    user_id: userId,
-                });
-                console.log('binance instance', binance);
-                await binance.save();
-    
-                //jwt
-                const payload = { id: savedUser.id, email: savedUser.email }; // Customize as needed
-                const access_token = generateJWT(payload);
-    
-                return res.status(201).send({
-                    statusCode: 201,
-                    statusMessage: 'Created',
-                    message: 'Successfully created a user.',
-                    data: {
-                        userId: savedUser?.id ?? null,
-                        // binanceId: zerolossId?.id ?? null,
-                        data: {
-                            displayName: null,
-                            photoUrl: null,
-                            email: savedUser?.email ?? null,
-                            shortcuts: ['apps.dashboard', 'apps.mailbox', 'apps.settings'],
-                        },
-                        role: ['user'], //get this dynamically
-                    },
-                    access_token: access_token,
-                    connected: false,
-                });
-            }
+                    role: ['user'], //get this dynamically
+                },
+                access_token: access_token,
+                connected: false,
+            });
         }
     } catch (err) {
         res.status(500).send({
@@ -275,19 +242,14 @@ const verifyOTP = async (req, res) => {
 };
 
 const requestOTP = async (req, res) => {
+    
     try {
         const { email } = req.body;      
         const otp = User.generateOTP();
         const otpExpiration = new Date(Date.now() + 10 * 60 * 1000);
-        await User.findByEmailAndUpdateOTP(email, otp, otpExpiration);
-        const userInstance = new User({ email, 'password': 'password' });
-        userInstance.sendEmail(email, otp);
-        return res.status(200).send({
-            statusCode: 200,
-            statusMessage: 'OK',
-            message: 'Verification email has been resent. Please verify your email.',
-            data: null,
-        });
+        console.log(otp,otpExpiration);       
+        await User.sendEmail(email, otp); 
+        return await User.findByEmailAndUpdateOTP(email, otp, otpExpiration);
     } catch (err) {
         res.status(500).send({
             statusCode: 500,
@@ -334,6 +296,11 @@ const changePd = async (req, res) => {
         console.error('Error updating password:', error);
         return res.status(500).json({ message: 'Internal server error' });
     }
+    const generateReferralCode = async (userId, email) => {
+        const referralCode = crypto.randomBytes(4).toString('hex'); // Generate unique code
+        await db.query('UPDATE users SET referral_code = ? WHERE id = ?', [referralCode, userId]);
+        return referralCode;
+    };
 };
 
 
@@ -345,5 +312,6 @@ module.exports = {
     verifyOTP,
     requestOTP,
     verifyToken,
-    changePd
+    changePd,
+    
 };

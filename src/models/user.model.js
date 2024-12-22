@@ -9,6 +9,8 @@ class User {
     constructor({
         email,
         password,
+        referral_code,
+        referredCodeBy,
         status = false,
         emailVerified = false,
         createdAt = new Date(),
@@ -16,10 +18,12 @@ class User {
     }) {
         this.email = email;
         this.password = password;
+        this.referral_code = referral_code;
         this.status = status;
         this.emailVerified = emailVerified;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
+        this.referredCodeBy =referredCodeBy;
     }
 
     get email() {
@@ -98,8 +102,8 @@ class User {
             const otp = User.generateOTP();
             const otpExpiration = new Date(Date.now() + 10 * 60 * 1000); // OTP valid for 10 minutes
 
-            const sql = `INSERT INTO users (id, email, password, status, email_verified, otp, otp_expiration, created_at, updated_at, role)
-                         VALUES (UUID(), ?, ?, ?, ?, ?, ?, ?, ?, 'user')`;
+            const sql = `INSERT INTO users (id, email, password, status, email_verified, otp, otp_expiration,referral_code,referred_by,created_at, updated_at, role)
+                         VALUES (UUID(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'user')`;
 
             this.sendEmail(this.email, otp);
 
@@ -108,9 +112,11 @@ class User {
                 this.email,
                 hashedPassword,
                 this.status,
-                this.emailVerified,
+                this.emailVerified,                
                 otp,
                 otpExpiration,
+                this.referral_code,
+                this.referredCodeBy,
                 now,
                 now,
             ]);
@@ -255,7 +261,12 @@ class User {
                 fieldsToUpdate.push('email_verified = ?');
                 valuesToUpdate.push(options.emailVerified);
             }
-    
+            if (options.otp !== undefined && options.otpExpiration !== undefined) {
+                fieldsToUpdate.push('otp = ?');
+                fieldsToUpdate.push('otp_expiration = ?');
+                valuesToUpdate.push(options.otp);
+                valuesToUpdate.push(options.otpExpiration);
+            }
             // Include updated_at field
             fieldsToUpdate.push('updated_at = ?');
             valuesToUpdate.push(now);
