@@ -128,6 +128,7 @@ const login = async (req, res) => {
                 data: {
                     displayName: userProfile.displayName,
                     photoUrl: userProfile.photoUrl,
+                    referral_code:user.referral_code,
                     email: user.email,
                     shortcuts: ['apps.dashboard', 'apps.mailbox', 'apps.settings'],
                 },

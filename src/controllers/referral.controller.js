@@ -6,8 +6,20 @@ const User = require('../models/user.model');
 
 const getReferral = async (req,res) =>{
     const userId = req.userId; 
-    console.log(req.userId);
-     
+    const data = await Referral.getReferralByUserId(userId);
+    if (!data) {
+        return res.status(404).send({
+            statusCode: 404,
+            statusMessage: 'Not found',
+            message: 'Referral not found.',
+            data: null,
+        });
+    }
+    return res.status(200).send({
+        statusCode: 200,
+        message:"get referral data",
+        data: data,
+    });
 
 }
 

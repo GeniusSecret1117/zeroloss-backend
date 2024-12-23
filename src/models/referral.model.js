@@ -71,6 +71,31 @@ class Referral {
             throw new Error('Could not send OTP email.');
         }
     }
+    static async getReferralByUserId(userId) {
+        try {
+            const sql = `SELECT 
+                            u.email,
+                            r.invite_email, 
+                            r.status, 
+                            r.updated_at, 
+                            p.full_name, 
+                            p.whatsapp
+                        FROM 
+                            users u
+                        LEFT JOIN 
+                            referrals r ON u.id = r.user_id
+                        LEFT JOIN 
+                            profiles p ON u.id = p.user_id
+                        WHERE 
+                            u.id = ?; `;
+            const res = await pool.execute(sql, [userId]);
+            
+            return res;
+        } catch (error) {
+            console.log('Error while getting api_key by userId : ', error.message);
+            return null;
+        }
+    }
     
 }
 
