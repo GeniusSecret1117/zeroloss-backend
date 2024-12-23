@@ -29,6 +29,7 @@ const fetchProfitPeriod = async (req, res) => {
                 data: null,
             });
         }
+                
         const profit = await BinanceApi.fetchAllProfitByPeriod(
             binKeys.api_key,
             binKeys.secret_key,

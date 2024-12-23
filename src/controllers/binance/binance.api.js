@@ -2,6 +2,7 @@ const axios = require('axios');
 const crypto = require('crypto');
 
 const binEndpoints = require('./binance.endpoints');
+const { log } = require('console');
 
 // Helper function to create the signature
 const createSignature = (params, secretKey) => {
@@ -156,7 +157,7 @@ const fetchIncomeByRange = async (apiKey, secretKey) => {
 
         await Promise.all(requests);
         // Fetch cumulative ALL profit:
-        const newTimestamp = timestamp;
+        const newTimestamp = await getBinanceServerTime();
         const incomeType = 'REALIZED_PNL';
         const newSignature = createSignature(`timestamp=${newTimestamp}&incomeType=${incomeType}`, secretKey);
         const allProfitResponse = await axios.get(`${binanceFuturesAPI}${binEndpoints.fetchIncome}`, {
@@ -191,6 +192,7 @@ const fetchAllProfitByPeriod = async (apiKey, secretKey, startTime, endTime) => 
         const incomeType = 'REALIZED_PNL';
         const queryString = `incomeType=${incomeType}&startTime=${startTime}&endTime=${endTime}&timestamp=${timestamp}`;
         const signature = createSignature(queryString, secretKey);
+
         const response = await axios.get(`${binanceFuturesAPI}${binEndpoints.fetchIncome}`, {
             headers: {
                 'X-MBX-APIKEY': apiKey,
