@@ -25,4 +25,7 @@ router.post('/fundingFee', userValidate, binanceController.fetchFundingFeeByPeri
 // Endpoint for getting period wise Transaction history
 router.post('/transaction', userValidate, binanceController.fetchTransactionByPeriod);
 
+// Endpoint for getting period wise Profit Statement
+router.post('/profit-period', userValidate, binanceController.fetchProfitPeriod);
+
 module.exports = router;

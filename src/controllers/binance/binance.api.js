@@ -11,7 +11,6 @@ const createSignature = (params, secretKey) => {
         .update(queryString) // Sign the query string
         .digest('hex'); // Generate the signature
 };
-
 // For live:
 // const binanceFuturesAPI = 'https://fapi.binance.com';
 // For Test:
@@ -182,6 +181,41 @@ const fetchIncomeByRange = async (apiKey, secretKey) => {
         return profitDataInfo;
     } catch (error) {
         console.error(`Error fetching data for days:`, error.response.data);
+    }
+};
+
+//Fetching All Income data by period(such as 1 day, 7 day, 1M, 3M, 1Y, dd to dd and so on)
+const fetchAllProfitByPeriod = async (apiKey, secretKey, startTime, endTime) => {
+    try {
+        const timestamp = await getBinanceServerTime();
+        const incomeType = 'REALIZED_PNL';
+        const queryString = `incomeType=${incomeType}&startTime=${startTime}&endTime=${endTime}&timestamp=${timestamp}`;
+        const signature = createSignature(queryString, secretKey);
+        const response = await axios.get(`${binanceFuturesAPI}${binEndpoints.fetchIncome}`, {
+            headers: {
+                'X-MBX-APIKEY': apiKey,
+            },
+            params: {
+                incomeType,
+                startTime,
+                endTime,
+                timestamp,
+                signature,
+            },
+        });
+        const profit = response.data;
+        let data = null;
+        if (profit != null && profit != undefined) {
+            data = profit;
+        } else {
+            console.log('Profit Statement Info not found');
+            data = [];
+        }
+
+        return data;
+    } catch (error) {
+        console.log('Error while fetching Profit Statement', error.response.data);
+        return [];
     }
 };
 
@@ -771,4 +805,5 @@ module.exports = {
     fetchTradeHistory,
     fetchFundingFeeByPeriod,
     fetchTransactionByPeriod,
+    fetchAllProfitByPeriod
 };

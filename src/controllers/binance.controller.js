@@ -15,7 +15,43 @@ function createSignature(queryString, secretKey) {
 // const getApiKey = async (userId) => {
 //     return await BinanceSetting.
 // };
-
+const fetchProfitPeriod = async (req, res) => {
+    try {
+        //get Users Api Keys
+        const binKeys = await BinanceSetting.findApiKeyByUserId(req.userId);
+        const startTime = req.body.startTime;
+        const endTime = req.body.endTime;
+        if (startTime == undefined || startTime == null || endTime == null || endTime == undefined) {
+            return res.status(400).send({
+                statusCode: 400,
+                statusMessage: 'Internal Server Error while fetching Profit statement',
+                message: 'err.message',
+                data: null,
+            });
+        }
+        const profit = await BinanceApi.fetchAllProfitByPeriod(
+            binKeys.api_key,
+            binKeys.secret_key,
+            startTime,
+            endTime
+        );
+        res.send({
+            statusCode: 200,
+            statusMessage: 'Ok',
+            message: 'Successfully retrieved the Profit statement',
+            data: {
+                profit,
+            },
+        });
+    } catch (error) {
+        return res.status(500).send({
+            statusCode: 500,
+            statusMessage: 'Internal Server Error while fetching profit statement',
+            message: error.message,
+            data: null,
+        });
+    }
+};
 const fetchFundingFeeByPeriod = async (req, res) => {
     try {
         //get Users Api Keys
@@ -279,4 +315,5 @@ module.exports = {
     buyOrders,
     fetchFundingFeeByPeriod,
     fetchTransactionByPeriod,
+    fetchProfitPeriod,
 };

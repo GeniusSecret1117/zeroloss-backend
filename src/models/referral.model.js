@@ -81,13 +81,13 @@ class Referral {
                             p.full_name, 
                             p.whatsapp
                         FROM 
-                            users u
+                            referrals r
                         LEFT JOIN 
-                            referrals r ON u.id = r.user_id
+                            users u ON u.id = r.user_id
                         LEFT JOIN 
                             profiles p ON u.id = p.user_id
                         WHERE 
-                            u.id = ?; `;
+                            r.user_id = ?; `;
             const res = await pool.execute(sql, [userId]);
             
             return res;
